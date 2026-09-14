@@ -1,0 +1,44 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  aegisflow:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      USE_REDIS: "true"
+      REDIS_URL: "redis://redis:6379/0"
+      OPENAI_BASE_URL: "${OPENAI_BASE_URL}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      LLM_MODEL: "${LLM_MODEL:-qwen3.8-flash}"
+      ENABLE_TRACING: "true"
+      DATABASE_PATH: "/app/data/aegisflow.db"
+      DEMO_AUTH: "${DEMO_AUTH:-true}"
+      API_USERS: '${API_USERS:-{}}'
+      MCP_URL: "${MCP_URL:-}"
+      MCP_API_KEY: "${MCP_API_KEY:-}"
+    volumes:
+      - aegisflow-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  mcp:
+    profiles: ["mcp"]
+    build: .
+    command: ["uvicorn", "app.mcp_server:create_mcp_app", "--factory", "--host", "0.0.0.0", "--port", "8001"]
+    environment:
+      MCP_API_KEY: "${MCP_API_KEY:-}"
+    ports:
+      - "8001:8001"
+
+volumes:
+  aegisflow-data:

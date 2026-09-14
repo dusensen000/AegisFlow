@@ -1,0 +1,6 @@
+-r requirements.txt
+ragas>=0.4,<0.5
+langfuse>=4.0,<5
+openai>=2,<3
+instructor>=1.12,<2
+langchain-community==0.3.31

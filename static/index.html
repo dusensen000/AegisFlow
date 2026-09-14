@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AegisFlow 售后决策工作台</title>
+<link rel="stylesheet" href="/static/style.css">
+<script defer src="/static/vendor/lucide.min.js"></script>
+<script defer src="/static/app.js"></script>
+<script defer src="/static/chat.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <button id="menu-btn" class="icon-btn mobile-only" title="工单列表" aria-label="工单列表"><i data-lucide="panel-left"></i></button>
+  <div class="brand"><i data-lucide="shield-check"></i><strong>AegisFlow</strong><span>售后决策工作台</span></div>
+  <div class="top-actions"><span id="connection" class="status">连接中</span><span id="staff-role"></span>
+  <button id="staff-btn" class="icon-btn" title="客服身份" aria-label="客服身份"><i data-lucide="user-round"></i></button>
+  <button id="theme-btn" class="icon-btn" title="切换主题" aria-label="切换主题"><i data-lucide="sun-moon"></i></button></div>
+</header>
+<div class="workspace">
+<aside class="sidebar" id="sidebar">
+  <div id="conversation-sidebar">
+    <div class="sidebar-heading"><h1>客服会话</h1><button id="new-chat-btn" class="icon-btn" title="新建会话" aria-label="新建会话"><i data-lucide="square-pen"></i></button></div>
+    <label class="search"><i data-lucide="search"></i><input id="conversation-search" type="search" placeholder="搜索会话" aria-label="搜索会话"></label>
+    <div id="conversation-list" class="ticket-list"></div>
+  </div>
+  <div id="management-sidebar" hidden>
+  <div class="sidebar-heading"><h1>售后工单</h1><span id="ticket-count"></span></div>
+  <div class="sidebar-tools"><button id="new-ticket-btn"><i data-lucide="plus"></i>新建工单</button><button id="trash-btn" class="icon-btn" title="回收站" aria-label="回收站"><i data-lucide="archive"></i></button></div>
+  <label class="search"><i data-lucide="search"></i><input id="search-input" type="search" placeholder="工单号、订单号或问题" aria-label="搜索工单"></label>
+  <select id="status-filter" aria-label="筛选工单状态"><option value="">全部状态</option><option value="unprocessed">待处理</option><option value="running">处理中</option><option value="completed">审核通过</option><option value="manual_review">待人工</option><option value="manual_resolved">人工已复核</option><option value="needs_evidence">待补充证据</option><option value="failed">处理失败</option><option value="paused">已暂停</option><option value="cancelled">已取消</option></select>
+  <div id="ticket-list" class="ticket-list"></div>
+  </div>
+</aside>
+<main class="main">
+  <nav class="tabs" aria-label="工作视图"><button id="chat-tab" class="active" disabled>客服会话</button><button id="ticket-tab" disabled>工单管理</button><button id="manual-tab" disabled>人工复核 <span id="manual-count">0</span></button></nav>
+  <div id="notice" role="alert" hidden></div>
+  <section id="chat-view" class="chat-view">
+    <div class="chat-heading"><div><h2 id="conversation-title">售后客服会话</h2><span id="chat-phase" class="eyebrow"></span></div><div class="run-controls"><button id="chat-stop-btn" hidden><i data-lucide="square"></i>停止处理</button><button id="delete-chat-btn" class="icon-btn" disabled title="删除会话" aria-label="删除会话"><i data-lucide="trash-2"></i></button></div></div>
+    <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+    <div class="chat-composer"><label class="order-picker">关联订单<select id="chat-order" aria-label="关联订单"><option value="">自动关联订单</option></select></label><form id="chat-form"><textarea id="chat-input" rows="2" maxlength="2000" placeholder="描述售后问题或补充诉求…" aria-label="客服消息" required></textarea><button id="chat-send-btn" class="primary" type="submit" title="发送消息" aria-label="发送消息"><i data-lucide="send"></i></button></form></div>
+  </section>
+  <section id="ticket-view" hidden>
+    <div class="ticket-header"><div><span class="eyebrow">当前工单</span><h2 id="ticket-title">加载中</h2><p id="ticket-description"></p></div>
+    <div class="run-controls"><span id="run-stage" class="eyebrow"></span><span id="run-status" class="status"></span>
+    <button id="edit-ticket-btn" class="icon-btn" disabled title="编辑工单" aria-label="编辑工单"><i data-lucide="pencil"></i></button><button id="delete-ticket-btn" class="icon-btn" disabled title="删除工单" aria-label="删除工单"><i data-lucide="trash-2"></i></button>
+    <button id="resume-btn" hidden><i data-lucide="play"></i>恢复任务</button>
+    <button id="cancel-btn" hidden><i data-lucide="square"></i>停止</button>
+    <button id="process-btn" class="primary" disabled><i data-lucide="play"></i>开始处理</button></div></div>
+    <div class="case-grid">
+      <div class="decision-area">
+        <section class="case-section"><h3>客户诉求</h3><dl id="ticket-facts" class="facts"></dl></section>
+        <section class="case-section"><div class="section-heading"><h3>处理建议</h3><div>
+        <button id="copy-btn" class="icon-btn" disabled title="复制方案" aria-label="复制方案"><i data-lucide="copy"></i></button>
+        <button id="export-btn" class="icon-btn" disabled title="导出处理记录" aria-label="导出处理记录"><i data-lucide="download"></i></button></div></div>
+        <div id="proposal"><p class="empty">暂无处理建议</p></div><div id="review"></div>
+        <div id="feedback" hidden><button id="accept-btn"><i data-lucide="check"></i>采纳建议</button><button id="reject-btn">反馈问题</button><span id="feedback-status"></span></div></section>
+        <section class="case-section"><h3>补充材料</h3><div id="supplement-history"></div>
+        <form id="supplement-form"><textarea id="supplement-input" rows="3" maxlength="2000" placeholder="客户补充的问题、材料或处理偏好" aria-label="补充材料"></textarea><button id="supplement-btn" type="submit">保存材料</button></form></section>
+        <section class="case-section"><h3>执行记录</h3><ol id="timeline" class="timeline"></ol></section>
+      </div>
+      <aside class="evidence-area">
+        <section class="case-section"><h3>订单与物流</h3><div id="order-evidence"></div><div id="logistics-evidence"></div></section>
+        <section class="case-section"><h3>工具证据</h3><div id="tool-evidence"><p class="empty">暂无工具调用</p></div></section>
+        <section class="case-section"><h3>规则依据</h3><div id="rules-evidence"><p class="empty">暂无规则引用</p></div></section>
+        <section class="case-section"><h3>会话摘要</h3><div id="memory"></div></section>
+      </aside>
+    </div>
+  </section>
+  <section id="manual-view" hidden><div class="ticket-header"><h2>人工复核队列</h2><button id="refresh-manual"><i data-lucide="refresh-cw"></i>刷新</button></div><div id="manual-list"></div></section>
+  <section id="trash-view" hidden><div class="ticket-header"><h2>工单回收站</h2><button id="back-tickets-btn">返回工单</button></div><div id="trash-list"></div></section>
+</main>
+</div>
+<dialog id="ticket-dialog"><form id="ticket-form"><div class="section-heading"><h2 id="ticket-dialog-title">新建工单</h2><button type="button" class="icon-btn" id="close-ticket-dialog" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div><label>订单<select id="ticket-order" required aria-label="工单订单"></select></label><label>售后问题<textarea id="ticket-problem" rows="3" maxlength="2000" required></textarea></label><label>客户诉求<textarea id="ticket-claim" rows="2" maxlength="2000"></textarea></label><label>期望处理<select id="ticket-action"><option>退款</option><option>仅退款</option><option>退货</option><option>换货</option><option>补偿</option><option>人工复核</option></select></label><label class="checkbox-label" id="auto-run-label"><input type="checkbox" id="ticket-auto-run" checked>创建后自动处理</label><p id="ticket-form-error" role="alert"></p><button class="primary" type="submit" id="save-ticket-btn">创建工单</button></form></dialog>
+<dialog id="delete-dialog"><div class="section-heading"><h2 id="delete-title">删除工单</h2></div><p id="delete-description"></p><p id="delete-error" role="alert"></p><div class="run-controls"><button id="close-delete-dialog">取消</button><button id="confirm-delete-btn" class="danger">确认删除</button></div></dialog>
+<dialog id="staff-dialog"><form id="staff-form"><div class="section-heading"><h2>客服身份</h2><button type="button" class="icon-btn" id="close-staff" title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div>
+<label>客服 API 凭据<input id="staff-token" type="password" autocomplete="off" required></label><p id="staff-error" role="alert"></p><button class="primary" type="submit">登录</button></form></dialog>
+<dialog id="decision-dialog"><form id="decision-form"><h2>提交人工复核</h2><label>复核结果<select id="decision-outcome"><option value="approved">同意处理建议</option><option value="rejected">拒绝处理建议</option><option value="needs_evidence">需要补充证据</option></select></label><label>复核意见<textarea id="decision-note" required maxlength="2000" rows="4"></textarea></label><div class="run-controls"><button type="button" id="close-decision">取消</button><button type="submit" class="primary">提交复核</button></div></form></dialog>
+</body>
+</html>
