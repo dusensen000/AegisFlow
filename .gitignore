@@ -9,7 +9,7 @@ logs/
 reports/
 *.log
 .DS_Store
-data/
+/data/
 .pytest_cache/
 
 .env.*
